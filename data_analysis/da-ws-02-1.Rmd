@@ -1,0 +1,129 @@
+---
+title: "da-ws-02-1"
+author: "keltoskytoi"
+date: "28 Oktober 2016"
+output: html_document
+---
+
+
+## Weekly Assignment
+
+*Getting tougher for my humanist brain, but still coping! And it makes lot´s of fun understanding how it works. Knowlegde lies in understanding first... :)*
+
+**Assignment 1:**
+
+```
+n <-5 
+if (n > 1) {
+print ("larger")
+
+} else if (n <= 1) {
+print ("equal or smaller")
+}
+```
+**Assignment 2:**
+  
+```
+n <-5 
+if (n > 1) {
+print ("larger")
+
+} else if (n == 1) {
+print ("equal")
+
+} else if (n < 1) {
+print ("smaller")
+}
+```
+**Assignment 3:** 
+
+```
+n <-5 
+if (n%%2==0) {
+print ("even")
+} else {
+print ("odd") }
+```
+
+**Assignemt 4**
+
+```
+for (n in seq (0,2))  
+
+if (n < 1)  { 
+print ("smaller")
+
+} else if (n == 1) {
+print ("equal")
+
+} else if (n > 1) {
+print ("larger")
+}
+print(n)
+```
+
+**Assignment 5**
+
+```
+n <- 5
+for (n in seq (0,2))  
+if (n < 1)  { 
+vector[1] ("smaller")
+} else if (n == 1) {
+vector[2] ("equal")
+} else if (n > 1) {
+vector[3] ("larger")
+}
+print(v1)
+
+```
+
+**Assignment 6**
+
+
+```
+list=list ()
+for (n in seq (0,2))  
+if (n < 1)  { 
+list[1]=("smaller")
+} else if (n == 1) {
+list[2]=("equal")
+} else if (n > 1) {
+list[3]=("larger")
+}
+list 
+```
+
+**Assignment 7** 
+
+
+```
+lapply (0:2, function (n)  
+if (n < 1)  { 
+print ("smaller")
+
+} else if (n == 1) {
+print ("equal")
+
+} else if (n > 1) {
+print ("larger")}
+)
+```
+
+**Assignment 8**
+
+```
+lapply (0:2, function (n)  
+if (n < 1)  { 
+vector[1] ("smaller")
+
+} else if (n == 1) {
+vector[2]("equal")
+
+} else if (n > 1) {
+vector[3] ("larger")}
+)
+print(v1)
+
+```
+
