@@ -1,0 +1,87 @@
+---
+title: "da-03-02"
+author: "keltoskytoi, Jana Schönemann, Sebastian Richter"
+date: "7 November 2016"
+output: html_document
+
+##Data Analysis#
+
+```
+df <- read.table ("C:/Users/Keltoskytoi/Desktop/WS2016_2017/msc-phygeo-class-of-2016-keltoskytoi/msc-phygeo-class-of-2016-keltoskytoi/hessen_holzeinschlag_1997-2014.csv",
+                 skip = 4, header = TRUE, sep = ";", dec = ",")
+head(df,2)
+df <- df[-19,]
+df
+
+write.table (df, "C:/Users/Keltoskytoi/Desktop/WS2016_2017/msc-phygeo-class-of-2016-keltoskytoi/msc-phygeo-class-of-2016-keltoskytoi/hessen_holzeinschlag_1997-2014_clean.csv.csv",
+             sep = ";", dec = ",")
+```             
+
+##Aufgabe 1
+
+```
+Amount <- c(sum(df$Eiche), sum(df$Buche), sum (df$Buntholz), sum (df$Fichte), sum(df$Kiefer), sum(df$Insgesamt))
+Treetype <- c("Eiche", "Buche", "Buntholz", "Fichte", "Kiefer","Insgesamt")
+df1 <- data.frame(Treetype, Amount)
+plot(df1) 
+
+summary(df)
+```
+
+##Aufgabe 2
+
+```
+Eiche <- (df[,2])
+Jahreszahl <- (df[,1])
+df2 <- data.frame (Jahreszahl,Eiche)
+plot(df2)
+
+sum(df$Eiche)
+plot(Eiche)
+
+Buche <- (df[,3])
+Jahreszahl <- (df[,1])
+df3 <- data.frame (Jahreszahl,Buche)
+plot(df3)
+
+sum(df$Buche)
+plot(Buche)
+```
+
+#####Grundsätzlich ist der Holzeinschlag von Buche 4-mal mehr als von Eiche. Es wird mehr Buche als Eiche gefällt und es kann ein vergleichsweise geringer Holzeinschlag in 1997 und 2009 feststgestellt werden. 
+
+##Aufgabe 3
+
+```
+Buntholz <- (df[,4])
+Fichte <- (df[,5])
+Kiefer <- (df[,6])
+
+par_org <- par()
+par(mfrow=c(2,2))
+boxplot((df[,3]) ,(df[,2]), main = "Holzeinschlag Buche_Eiche_1997-2014")
+boxplot((df[,3]) ,(df[,4]), main = "Holzeinschlag Buche_Buntholz_1997-2014")
+boxplot((df[,3]) ,(df[,5]), main = "Holzeinschlag Buche_Fichte_1997-2014")
+boxplot((df[,3]) ,(df[,6]), main = "Holzeinschlag Buche_Kiefer_1997-2014")
+
+plot((Buche), (Eiche), main = "Holzeinschlag Buche_Eiche_1997-2014")
+plot((Buche),(Buntholz), main = "Holzeinschlag Buche_Buntholz_1997-2014")
+plot((Buche),(Fichte), main = "Holzeinschlag Buche_Fichte_1997-2014")
+plot((Buche),(Kiefer), main = "Holzeinschlag Buche_Kiefer_1997-2014")
+```
+
+##Aufgabe 4
+
+#####Vergleich Holzeinschlag Buche_Eiche: Viermal höherer Einschlag von Buche. Varianz bei Buche höher als bei Eiche.
+#####Vergleich Holzeinschlag Buche_Buntholz nicht möglich, da Buntholz 2000 in Buche integriert wurde.
+#####Vergleich Holzeinschlag Buche_Fichte: Varianz des Einschlags bei Fichte höher als bei Buche,Buche aber intensiverer Einschlag.
+#####Vergleich Holzeinschlag Buche_Kifer: Buche deutlich höherer Einschlag.
+
+
+#####*Anmerkung: Bei Visualisierung von Aufgabe 3 fehlt Zeitparameter. Wir haben keine Lösung für das Problem gefunden.* 
+
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
