@@ -1,0 +1,160 @@
+---
+title: "da-ws-05-2"
+author: "Jana Schönemann, Agnes Schneider, Sebastian Richter"
+date: "21 November 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# Cleaning the data:
+
+
+setwd("D:/Ben/richters/data/data_analysis")
+df<-read.table("D:/Ben/richters/data/data_analysis/115-46-4_feldfruechte.txt", skip = 6, header = TRUE, fill = TRUE, sep = ";", dec = ",")
+
+df <- df[-c(8926,8927,8928,8929,8930),]
+
+
+
+## Renaiming columns
+names(df) <-c("Year", "ID", "Place", "Winterweizen", "Roggen+Wintermenggetreide",  "Wintergerste",  "Sommergerste", "Hafer", "Triticale", "Kartoffeln", "Zuckerrüben", "Winterraps", "Silomais")
+
+## Converting data types to numerical data types
+for (c in colnames(df) [4:13]){
+  df[, c] [df[, c]== "."] <-NA
+  df[, c] [df[, c]== "0,0"] <-NA
+  df[, c] <- as.numeric(sub(",",".",as.character(df[, c])))
+}
+
+## Converting wide to long format
+library(reshape2)
+df_long<-melt(df, id.vars = c("Year", "ID", "Place"))
+
+## Split multiple information within one column
+place<-strsplit(as.character(df$Place), ",")
+
+library(gsubfn)
+place_df<-lapply(place,function(i){
+  p1<-sub("^\\s+", "", i[1])
+  if(length(i)>2){
+    p2<-sub("^\\s+", "", i[2])
+    p3<-sub("^\\s+", "", i[3])
+  } else if (length(i)>1) {
+    p2<-sub("^\\s+", "", i[2])
+    p3<-NA
+  } else{
+    p2<-NA
+    p3<-NA
+  }
+  data.frame(A=p1,
+             B=p2,
+             C=p3)
+})
+place_df<-do.call("rbind", place_df)
+place_df$ID<-df$ID
+place_df$Year<-df$Year
+
+## Look at columns B and C, resort columns
+unique(place_df$B[!is.na(place_df$C)])
+place_df[!is.na(place_df$C),]<-place_df[!is.na(place_df$C), c(1,3,2,4,5)]
+
+## Missing Values in B
+for(r in seq (nrow(place_df))){
+  if(is.na(place_df$B[r]) &
+     grepl("kreis", tolower(place_df$A[r]))){
+    place_df$B[r]<-"Admin_misc"
+  }
+}
+unique(df_long$Place[is.na(place_df$B)])
+
+place_df$B[is.na(place_df$B)& nchar(as.character(place_df$ID) == 2)] <-"Bundesland"
+place_df$B[place_df$ID == "DG"]<-"Admin_unit"
+df_clean=merge(df,place_df)
+
+df_clean=df_clean[c(1,2,14,15,16,4,5,6,7,8,9,10,11,12,13)]
+
+## zur Visualisierung:
+## head(place_df)
+## head(df_clean)
+## df
+## df_clean
+
+
+# Aufgabe 1: Relationship between the winter wheat and winter barley
+
+library(car)
+library(devtools)
+library(easyGgplot2)
+library(gridExtra)
+
+## linear model
+
+ind=df_clean$Winterweizen
+dep=df_clean$Wintergerste
+lmod=lm(dep ~ ind)
+
+plot(ind,dep)
+abline(lmod, col="blue")
+
+## oder schöner:
+
+ggplot2.scatterplot(data=df_clean,"Winterweizen","Wintergerste") +
+  stat_smooth(method = "lm", col = "red")
+
+## Normal distribution of residuals
+plot(lmod, which = 2)
+
+## Die Verteilung der Residuen ergibt ein normalverteiltes Bild mit starken Ausreißern am oberen und unteren Rand. 
+
+## Heteroscedasticity
+plot(lmod, which = 1)
+
+## Die Varianz der Residuen ist für den mittleren Wertebereich normalverteilt. Für x-Werte von 20 und 65 bis 80 sind Ausreißer zu erkennen. 
+
+
+
+# Aufgabe 2: 
+
+## Nullhypothese: Es gibt keinen Zusammenhang zwischen dem Ertrag der Wintergerste und dem Ertrag des Winterweizens. (Wird bei p-Werten größer 0.05 verworfen)
+
+zufall_50=lapply(seq(1:50), function(x){
+        nrow(df_clean)
+         s=sample(nrow(df_clean),50)
+         lmod=lm(df_clean$Winterweizen[s]~df_clean$Wintergerste[s])
+         if(shapiro.test(lmod$residuals)$p.value <= 0.05) {
+  return (print("significant")) }
+         else (print("woooof"))
+         }
+  )
+
+zufall_100=lapply(seq(1:100), function(x){
+  nrow(df_clean)
+  s=sample(nrow(df_clean),50)
+  lmod=lm(df_clean$Winterweizen[s]~df_clean$Wintergerste[s])
+  if(shapiro.test(lmod$residuals)$p.value <= 0.05) {
+    return (print("significant")) }
+  else (print("woooof"))
+}
+)
+
+
+zufall_50=unlist(zufall_50)
+zufall_100=unlist(zufall_100)
+result_50 <- table(zufall_50)
+result_100 <- table(zufall_100)
+result_50
+result_100
+
+## btw: wooof = dooof        ...bzw. nicht signifikant
+
+## Ergebnis: Gott würfelt nicht! Aber die Zusammenhänge sind zufällig. Ergo: Gott würfelt doch machnmal..
+
+
+```
+
