@@ -1,0 +1,75 @@
+---
+title: "gi-ws-04-1"
+author: "Jana Schönemann, Agnes Schneider, Kevin Frac, Sebastian Richter"
+date: "22 Nocember 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+## Workflow
+
+source("D:/BEN/richters/msc-phygeo-class-of-2016-richte4d/fun/rs_source_richters.R")
+
+### Compute
+dem_fp <- paste0(path_input, "las_dsm_01m.tif")
+
+
+### Transform tif to sgrd
+cmd.tif2sgrd <- paste0(path_saga,
+              " io_gdal 0",
+              " -GRIDS ", paste0(dem_fp, ".sgrd"),
+              " -FILES ", dem_fp)
+system(cmd.tif2sgrd)
+
+
+### Compute slope
+
+cmd.all_in_1 <- paste0(path_saga,
+                       " ta_morphometry 0",
+                       " -ELEVATION ", paste0(dem_fp, ".sgrd"),
+                       " -SLOPE ", paste0(path_temp, "slope.sgrd"),
+                       " -C_MINI ", paste0(path_temp, "mincurv.sgrd"),
+                       " -C_MAXI ", paste0(path_temp, "maxcurv.sgrd"),
+                       " -C_PROF ", paste0(path_temp, "pcurv.sgrd"),
+                       " -C_TANG ", paste0(path_temp, "tcurv.sgrd"))
+system(cmd.all_in_1)
+
+
+
+cmd.fuzzy <- paste0(path_saga,
+                    " ta_morphometry 25",
+                    " -SLOPE ", paste0(path_temp, "slope.sgrd"),
+                    " -MINCURV ", paste0(path_temp, "mincurv.sgrd"),
+                    " -MAXCURV ", paste0(path_temp, "maxcurv.sgrd"),
+                    " -PCURV ", paste0(path_temp, "pcurv.sgrd"),
+                    " -TCURV ", paste0(path_temp, "tcurv.sgrd"),
+                    " -PLAIN ", paste0(path_output, "plain.sgrd"))
+system(cmd.fuzzy)
+
+
+
+cmd.sgrd2tif <- paste0(path_saga,
+                       " io_gdal 1",
+                       " -GRIDS ", paste0(path_output, "plain.sgrd"),
+                       " -FILES ", paste0(path_output, "plain.tif")) 
+system(cmd.sgrd2tif)
+
+### Es ist nicht nachvollziehbar warum das Umwandeln in TIFF hier nicht funktioniert :(
+### Über das Tool in der Sagaoberfläche konnte das TIFF aber exportiert werden :)
+
+
+
+
+
+```{r}
+source("D:/BEN/richters/msc-phygeo-class-of-2016-richte4d/fun/rs_source_richters.R")
+library(raster)
+dsm=stack(paste0(path_output, "plain.tif"))
+dsm
+plot(dsm)
+```
