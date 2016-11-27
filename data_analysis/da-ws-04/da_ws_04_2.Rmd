@@ -7,11 +7,19 @@ output: html_document
 
 
 ```{r}
-setwd("D:/Ben/schoenej")
-df<-read.table("D:/Ben/schoenej/AI001_gebiet_flaeche.txt", skip = 4, header = TRUE, fill = TRUE, sep = ";", dec = ",")
+path_main <- "C:/Users/Keltoskytoi/Desktop/"
+path_data <- paste0(path_main, "data/")
+path_input <- paste0(path_data, "data_analysis/input/")
+path_csv <- paste0(path_data, "data_analysis/csv/")
+path_output <- paste0(path_data, "data_analysis/output/")
+path_temp <- paste0(path_data, "data_analysis/temp/")
+path_fun <- paste0(path_data, "data_analysis/fun")
+path_results <- paste0(path_main, "results/")
+
+df<-read.table("C:/Users/Keltoskytoi/Desktop/data/data_analysis/csv/AI001_gebiet_flaeche.txt", skip = 4, header = TRUE, fill = TRUE, sep = ";", dec = ",")
                
 
-##Renaiming columns
+##Renaming columns
 names(df) <-c("Year", "ID", "Place", "Settlement", "Recreation", "Agriculture", "Forest")
 
 ##Converting data types to numerical data types
@@ -48,10 +56,12 @@ place_df<-lapply(place,function(i){
 place_df<-do.call("rbind", place_df)
 place_df$ID<-df$ID
 place_df$Year<-df$Year
+head(place_df)
 
 ## Look at columns B and C, resort columns
 unique(place_df$B[!is.na(place_df$C)])
 place_df[!is.na(place_df$C),]<-place_df[!is.na(place_df$C), c(1,3,2,4,5)]
+head(place_df)
 
 ## Missing Values in B
 for(r in seq (nrow(place_df))){
@@ -65,7 +75,12 @@ unique(df_long$Place[is.na(place_df$B)])
 place_df$B[is.na(place_df$B)& nchar(as.character(place_df$ID) == 2)] <-"Place"
 place_df$B[place_df$ID == "DG"]<-"Admin_unit"
 head(place_df)
+df_clean <- merge(df, place_df)
+head(df_clean)
 
+df_clean <- df_clean [,c(1,2,8,9,10,4,5,6,7)]
+head(df_clean)
+
+saveRDS(df_clean, file = "C:/Users/Keltoskytoi/Desktop/data/data_analysis/results/Settlement_Recreation04_2.rds")
 
 ```
-

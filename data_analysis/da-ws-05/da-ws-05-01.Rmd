@@ -1,0 +1,34 @@
+---
+title: "da-ws-05-1"
+author: "keltoskytoi, Jana Schönemann, Sebastian Richter"
+date: "27 November 2016"
+output: html_document
+---
+
+```{r}
+path_main <- "C:/Users/Keltoskytoi/Desktop/"
+path_data <- paste0(path_main, "data/")
+path_input <- paste0(path_data, "data_analysis/input/")
+path_output <- paste0(path_data, "data_analysis/output/")
+path_temp <- paste0(path_data, "data_analysis/temp/")
+path_csv <- paste0(path_data, "data_analysis/csv")
+path_fun <- paste0(path_data, "data_analysis/fun")
+
+
+library(car)
+
+df<-readRDS("C:/Users/Keltoskytoi/Desktop/data/data_analysis/results/Settlement_Recreation04_2.rds", refhook = NULL)
+
+ind<-df$Settlement
+dep<-df$Recreation
+plot(ind,dep)
+
+lmod<-lm(dep~ind)
+plot(ind, dep)
+regLine (lmod, col="red")
+
+summary(lmod)
+anova(lmod)
+head(anscombe)
+```
+
