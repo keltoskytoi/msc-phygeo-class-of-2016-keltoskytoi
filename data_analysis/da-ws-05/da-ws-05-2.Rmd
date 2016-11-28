@@ -1,0 +1,99 @@
+---
+title: "da-ws-05-2"
+author: "Jana Schönemann, Agnes Schneider, Sebastian Richter"
+date: "21 November 2016"
+output: html_document
+---
+
+
+```{r}
+path_main <- "C:/Users/Keltoskytoi/Desktop/"
+path_data <- paste0(path_main, "data/")
+path_input <- paste0(path_data, "data_analysis/input/")
+path_output <- paste0(path_data, "data_analysis/output/")
+path_temp <- paste0(path_data, "data_analysis/temp/")
+path_csv <- paste0(path_data, "data_analysis/csv/")
+path_fun <- paste0(path_data, "data_analysis/fun/")
+
+df <- read.table(paste0(path_csv, "115-46-4_feldfruechte.txt"),
+                 skip = 6, header = TRUE, sep = ";", dec = ",", fill = TRUE, 
+                encoding = "ANSI")
+
+df <- df[1:8925,]
+
+## Renaming columns
+names(df) <-c("Year", "ID", "Place", "Winterweizen", "Roggen+Wintermenggetreide",  "Wintergerste",  "Sommergerste", "Hafer", "Triticale", "Kartoffeln", "Zuckerrüben", "Winterraps", "Silomais")
+
+## Converting data types to numerical data types
+for (c in colnames(df) [4:13]){
+  df[, c] [df[, c]== "."] <-NA
+  df[, c] [df[, c]== "0,0"] <-NA
+  df[, c] <- as.numeric(sub(",",".",as.character(df[, c])))
+}
+
+head(df)
+
+# Exercise 1: Relationship between the winter wheat and winter barley
+
+library(car)
+library(devtools)
+library(gridExtra)
+
+## THe Linear model
+
+ind <- df$Winterweizen
+dep <- df$Wintergerste
+plot(ind,dep)
+lmod <- lm(dep ~ ind)
+plot(dep,ind)
+abline(lmod, col="blue")
+
+## Normal distribution of residuals
+plot(lmod, which = 2)
+
+## Die Verteilung der Residuen ergibt ein normalverteiltes Bild mit starken Ausreißern am oberen und unteren Rand. 
+
+## Heteroscedasticity
+plot(lmod, which = 1)
+
+## Die Varianz der Residuen ist für den mittleren Wertebereich normalverteilt. Für x-Werte von 20 und 65 bis 80 sind Ausreißer zu erkennen. 
+
+# Aufgabe 2: 
+
+## Nullhypothese: Es gibt keinen Zusammenhang zwischen dem Ertrag der Wintergerste und dem Ertrag des Winterweizens. (Wird bei p-Werten größer 0.05 verworfen)
+
+zufall_50=lapply(seq(1:50), function(x){
+        nrow(df)
+         s=sample(nrow(df),50)
+         lmod=lm(df$Winterweizen[s]~df$Wintergerste[s])
+         if(shapiro.test(lmod$residuals)$p.value <= 0.05) {
+  return (print("significant")) }
+         else (print("woooof"))
+         }
+  )
+
+zufall_100=lapply(seq(1:100), function(x){
+  nrow(df)
+  s=sample(nrow(df),50)
+  lmod=lm(df$Winterweizen[s]~df$Wintergerste[s])
+  if(shapiro.test(lmod$residuals)$p.value <= 0.05) {
+    return (print("significant")) }
+  else (print("woooof"))
+}
+)
+
+
+zufall_50=unlist(zufall_50)
+zufall_100=unlist(zufall_100)
+result_50 <- table(zufall_50)
+result_100 <- table(zufall_100)
+result_50
+result_100
+
+## btw: wooof = dooof        ...bzw. nicht signifikant
+
+## Ergebnis: Gott würfelt nicht! Aber die Zusammenhänge sind zufällig. Ergo: Gott würfelt doch machnmal..
+
+
+```
+
