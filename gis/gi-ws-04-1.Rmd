@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Workflow
 
-source("D:/BEN/richters/msc-phygeo-class-of-2016-richte4d/fun/rs_source_richters.R")
+source("C:/Users/Keltoskytoi/Desktop/WS2016_2017/msc-phygeo-class-of-2016-keltoskytoi/gis/gis-ws-04/rs_source_richters.R")
 
 ### Compute
 dem_fp <- paste0(path_input, "las_dsm_01m.tif")
@@ -73,3 +73,5 @@ dsm=stack(paste0(path_output, "plain.tif"))
 dsm
 plot(dsm)
 ```
+
+

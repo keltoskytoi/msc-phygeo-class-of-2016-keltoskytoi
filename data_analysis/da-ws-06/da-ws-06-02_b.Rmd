@@ -1,0 +1,149 @@
+---
+title: "da-ws-06-02_b"
+author: "keltoskytoi, Jana Schönemann, Sebastian Richter"
+date: "28 November 2016"
+output: html_document
+---
+
+```{r}
+path_main <- "C:/Users/Keltoskytoi/Desktop/"
+path_data <- paste0(path_main, "data/")
+path_input <- paste0(path_data, "data_analysis/input/")
+path_output <- paste0(path_data, "data_analysis/output/")
+path_temp <- paste0(path_data, "data_analysis/temp/")
+path_csv <- paste0(path_data, "data_analysis/csv/")
+path_fun <- paste0(path_data, "data_analysis/fun/")
+
+library(car)
+library(lmtest)
+```
+# Organising the data
+```{r }
+df <- read.table(paste0(path_csv, "115-46-4_feldfruechte.txt"),
+                 skip = 6, header = TRUE, sep = ";", dec = ",", fill = TRUE, 
+                 encoding = "ANSI")
+
+df <- df[1:8925,]
+
+names(df) <-c("Year", "ID", "Place", "Winterweizen", "Roggen+Wintermenggetreide",  "Wintergerste",  "Sommergerste", "Hafer", "Triticale", "Kartoffeln", "Zuckerrüben", "Winterraps", "Silomais")
+
+for (c in colnames(df) [4:13]){
+  df[, c] [df[, c]== "."] <-NA
+  df[, c] [df[, c]== "0,0"] <-NA
+  df[, c] <- as.numeric(sub(",",".",as.character(df[, c])))
+}
+
+```
+# Relation between Wintergerste and Winterweizen
+
+```{r }
+ind<-df$Wintergerste
+dep<-df$Winterweizen
+plot(dep, ind)
+abline(lmod, col = "green")
+```
+# Preparations for the "leave many out cross validation" 
+```{r }
+nrow(df)
+head(df)
+df <- df[!is.na(df$Wintergerste), ]
+df <- df[!is.na(df$Winterweizen), ]
+remaining <- c("Wintergerste", "Winterweizen")
+df_new <- df[, remaining]
+head(df_new)
+summary(df_new)
+
+range <- nrow(df)
+nbr <- nrow(df) * 0.8
+```
+# Leave many out cross validation
+```{r }
+cv <- lapply(seq(100), function(i){
+  set.seed(i)
+  smpl <- sample (range, nbr)
+  train <- df_new[smpl, ]
+  test <- df_new[-smpl, ]
+  lmod <- lm(Winterweizen ~ Wintergerste, data=train)
+  pred <- predict(lmod , newdata = test)
+  obsv <- test$Winterweizen
+  resid <- obsv-pred   
+  ss_obsrv <- sum((obsv - mean(obsv))**2)
+  ss_model <- sum((pred - mean(obsv))**2)
+  ss_resid <- sum((obsv - pred)**2)
+  mss_obsrv <- ss_obsrv / (length(obsv) - 1)
+  mss_model <- ss_model / 1
+  mss_resid <- ss_resid / (length(obsv) - 2)
+  data.frame(pred = pred,
+             obsv = obsv,
+             resid = resid,
+             ss_obsrv = ss_obsrv,
+             ss_model = ss_model,
+             ss_resid = ss_resid,
+             mss_obsrv = mss_obsrv,
+             mss_model = mss_model,
+             mss_resid = mss_resid,
+             r_squared = ss_model / ss_obsrv
+  )             
+})
+cv <- do.call("rbind", cv)
+summary(cv)
+
+ss_obsrv <- sum((cv$obsv - mean(cv$obsv))**2)
+ss_model <- sum((cv$pred - mean(cv$obsv))**2)
+ss_resid <- sum((cv$obsv - cv$pred)**2)
+
+mss_obsrv <- ss_obsrv / (length(cv$obsv) - 1)
+mss_model <- ss_model / 1
+mss_resid <- ss_resid / (length(cv$obsv) - 2)
+
+plot(cv$obsv, (cv$obsv - cv$pred))
+```
+# Organising the results in a dataframe
+
+```{r }
+data.frame(NAME = c("cross-validation F value",
+                    "linear model F value", 
+                    "cross-validatino r squared",
+                    "linear model r squared"),
+           VALUE = c(round(mss_model / mss_resid, 2),
+                     round(anova(lmod)$'F value'[1], 2),
+                     round(1 - ss_resid / ss_obsrv, 2),
+                     round(summary(lmod)$r.squared, 2)))
+
+print("Range of r squared from the individual models computed in the cv:")
+
+summary(cv$model_r_squared)
+```
+*Question: why do i have in the command summary: Length  Class   Mode 
+                                                  0   NULL   NULL?
+When doing "leave-one out" I did get a result. I probably miscalculated something?                                                  
+
+# The predictive model and its dataframe
+```{r }
+se <- function(x) sd(x, na.rm = TRUE)/sqrt(length(na.exclude(x)))
+
+me <- round(mean(cv$pred - cv$obs, na.rm = TRUE), 2)
+rmse <- round(sqrt(mean((cv$pred - cv$obs)^2, na.rm = TRUE)),2)
+min_val <- round(min(cv$pred - cv$obs, na.rm = TRUE), 2)
+quantile_25 <-round(quantile(cv$pred - cv$obs, c(0.25), type = 1))
+quantile_50 <-round(quantile(cv$pred - cv$obs, c(0.5), type = 1))
+quantile_75 <-round(quantile(cv$pred - cv$obs, c(0.75), type = 1))
+max_val <- round(max(cv$pred - cv$obs, na.rm = TRUE),2)
+
+
+data.frame (NAME = c("Mean error (ME)", "Root mean square error (RMSE)", 
+                     "Minimum Value", "25% quantile", "50% quantile",
+                     "75% quantile", "Maximum Value"),
+            VALUE = c(me, rmse, min_val, 
+                      quantile_25, quantile_50,
+                      quantile_75, max_val))
+```
+#The predictive performance of the model: 
+                           NAME  VALUE
+1               Mean error (ME)  -0.02
+2 Root mean square error (RMSE)   6.33
+3                 Minimum Value -54.78
+4                  25% quantile  -4.00
+5                  50% quantile   0.00
+6                  75% quantile   4.00
+7                 Maximum Value  39.28
