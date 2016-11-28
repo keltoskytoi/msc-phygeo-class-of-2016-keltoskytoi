@@ -1,0 +1,124 @@
+---
+title: "da-ws-06-1b"
+author: "keltoskytoi, Jana Schönemann, Sebastian Richter"
+date: "28 November 2016"
+output: html_document
+---
+
+```{r}
+path_main <- "C:/Users/Keltoskytoi/Desktop/"
+path_data <- paste0(path_main, "data/")
+path_input <- paste0(path_data, "data_analysis/input/")
+path_output <- paste0(path_data, "data_analysis/output/")
+path_temp <- paste0(path_data, "data_analysis/temp/")
+path_csv <- paste0(path_data, "data_analysis/csv")
+path_fun <- paste0(path_data, "data_analysis/fun")
+
+library(car)
+library(lmtest)
+
+df<-readRDS("C:/Users/Keltoskytoi/Desktop/data/data_analysis/results/Settlement_Recreation04_2.rds", refhook = NULL)
+
+head(df)
+```
+#The relationship between the percentage of settlement areas and the respective recreation areas 
+```{r}
+ind<-df$Settlement
+dep<-df$Recreation
+plot(dep, ind)
+abline(lmod, col = "green")
+
+```
+
+#Cleaning the dataframe
+```{r}
+nrow(df)
+head(df)
+df <- df[!is.na(df$Settlement), ]
+df <- df[!is.na(df$Recreation), ]
+remaining <- c("Settlement", "Recreation")
+df_new <- df[, remaining]
+head(df_new)
+summary(df_new)
+```
+#Leave one out cross validation
+```{r}
+
+cv <- lapply(seq(nrow(df_new)), function(i){
+  train <- df_new[-i, ]
+  test <- df_new[i, ]
+  lmod <- lm(Settlement ~ Recreation, data=train)
+  pred <- predict(lmod , newdata = test)
+  obsv <- test$Settlement
+  data.frame(pred = pred,
+             obsv = obsv,
+             model_r_squared = summary(lmod)$r.squared)
+})
+cv <- do.call("rbind", cv)
+summary(cv)
+cv
+
+```
+##Frage: Sollte nicht bei lmod <- lm(y1 ~ x1, data = train) Recreation ~ Settlement stehen und nicht wie hier oben oder? [Wenn X = ind = Settlement; y = dep = Recreation]. Hier ist der Mean error 0,00:                            NAME VALUE
+1               Mean error (ME)  0.00
+2              Std. error of ME  0.10
+3     Mean absolute error (MAE)  4.57
+4             Std. error of MAE  0.07
+5 Root mean square error (RMSE)  6.85
+6            Std. error of RMSE  1.88
+
+## und in da-ws-06-01 ist er:
+                        NAME  VALUE
+1               Mean error (ME) -18.09
+2              Std. error of ME   0.19
+3     Mean absolute error (MAE)  18.09
+4             Std. error of MAE   0.19
+5 Root mean square error (RMSE)  22.21
+6            Std. error of RMSE  11.16
+##und der Plot von observed/predicted zeigt eine lineare regression hingegenzuin dieser version.
+##Soll es linear sein oder "scattered"? Ich hatte es umgetauscht, weil mir negatives error merkwürdig vorkam. 
+
+```{r}
+ss_obsrv <- sum((cv$obsv - mean(cv$obsv))**2)
+ss_model <- sum((cv$pred - mean(cv$obsv))**2)
+ss_resid <- sum((cv$obsv - cv$pred)**2)
+
+mss_obsrv <- ss_obsrv / (length(cv$obsv) - 1)
+mss_model <- ss_model / 1
+mss_resid <- ss_resid / (length(cv$obsv) - 2)
+
+plot(cv$obsv, (cv$obsv - cv$pred))
+```
+#F-Test and friends
+```{r}
+data.frame(NAME = c("cross-validation F value",
+                    "linear model F value", 
+                    "cross-validatino r squared",
+                    "linear model r squared"),
+           VALUE = c(round(mss_model / mss_resid, 2),
+                     round(anova(lmod)$'F value'[1], 2),
+                     round(1 - ss_resid / ss_obsrv, 2),
+                     round(summary(lmod)$r.squared, 2)))
+
+print("Range of r squared from the individual models computed in the cv:")
+
+summary(cv$model_r_squared)
+```
+#The predictive model
+```{r}
+se <- function(x) sd(x, na.rm = TRUE)/sqrt(length(na.exclude(x)))
+
+me <- round(mean(cv$pred - cv$obs, na.rm = TRUE), 2)
+me_sd <- round(se(cv$pred - cv$obs), 2)
+mae <- round(mean(abs(cv$pred - cv$obs), na.rm = TRUE), 2)
+mae_sd <- round(se(abs(cv$pred - cv$obs)), 2)
+rmse <- round(sqrt(mean((cv$pred - cv$obs)^2, na.rm = TRUE)), 2)
+rmse_sd <- round(se((cv$pred - cv$obs)^2), 2)
+
+data.frame(NAME = c("Mean error (ME)", "Std. error of ME", 
+                    "Mean absolute error (MAE)", "Std. error of MAE", 
+                    "Root mean square error (RMSE)", "Std. error of RMSE"),
+           VALUE = c(me, me_sd,
+                     mae, mae_sd,
+                     rmse, rmse_sd))
+```
