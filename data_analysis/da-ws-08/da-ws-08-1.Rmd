@@ -1,0 +1,73 @@
+---
+title: "da-ws-08-1"
+author: "keltoskytoi, Jana Schönemann, Sebastian Richter"
+date: "19 Dezember 2016"
+output: html_document
+---
+
+## Preparations 
+```{r}
+holz <- read.table ("C:/Users/Keltoskytoi/Desktop/data/data_analysis/csv/hessen_holzeinschlag_1997-2014_clean.csv.csv",
+                    header = TRUE, sep = ";", dec = ",")
+
+holz <- holz [-19,]
+ 
+head(holz)
+summary(holz)
+
+library(mgcv)
+library(car)
+
+range <- nrow(holz)
+nbr <-nrow(holz)*0.8
+```
+## Double-looping around
+```{r}
+ergebnis <- lapply(seq (3,13), function(k){
+  
+  wiederholung <- lapply(seq(100), function(i){
+    set.seed(i)
+    s <- sample(nrow(holz), nrow(holz)*0,8)
+    train <- holz[s,]
+    test <- holz[-s,]
+    obs <- test$Eiche
+    gamobs <- gam(Buche ~ s(Eiche, k = k, fx = TRUE), data = train)
+    gampred <- predict(gamobs, newdata=test)
+    
+    return (data.frame (Variables = "Buche + Eiche",
+                           rmse = sqrt(mean(gampred-obs)^2),
+                           adj_r_sqrd = summary(gamobs)$r-sq.))
+   } )
+   wiederholung<- do.call ("rbind", wiederholung)
+
+   return (data.frame(k = k,
+                     m_rmse = mean(rmse),
+                     rmse_psd = mean(rmse)+sd(rmse),
+                     rmse_msd = mean(rmse)-sd(rmse),
+                     m_adjR = mean(wiederholung$adjR)))
+} )  
+
+ergebnis<- do.call("rbind", ergebnis)
+``` 
+## Plotting
+```{r}
+dep <- holz$Eiche
+ind <- holz$Buche
+
+knots <- seq(3, 13)
+  
+palette <- colorRampPalette(colors=c("blue", "green", "red"))
+cols <- palette(length(knots))
+  
+plot(holz$Eiche, holz$Buche)
+  
+for(i in seq(length(knots))){
+  gammod <- gam(Buche ~ s(Eiche, k = k, fx = TRUE), data = holz)
+  px <- seq(min(holz$Eiche), max(holz$Eiche), 0.1)
+  gampred <- predict(gammod, list(Eiche = px))
+  lines(px, gampred, col = cols[i], lty=2)
+}
+  
+legend(300, 1000, paste("knots", knots, sep = " "), col = cols, lty=2, cex=0.25)
+  
+```
