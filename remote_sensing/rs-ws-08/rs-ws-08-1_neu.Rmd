@@ -1,0 +1,98 @@
+---
+title: "rs-08-01"
+author: "keltoskytoi, Jana Schönemann, Sebastian Richter"
+date: "20 Januar 2017"
+output: html_document
+---
+####Pfade setzen
+```{}
+source("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/fun/Source_rs.R")
+otbPath <- "C:/OTB-5.8.0-win64/OTB-5.8.0-win64/bin/"
+```
+####Librarys laden
+```{}
+install.packages("glcm")
+install.packages("devtools")
+install.packages("RStoolbox")
+library(glcm)
+library(raster)
+library(gdalUtils)
+library(rgdal)
+library(sp)
+library(tools)
+library(devtools)
+library(RStoolbox)
+devtools::install_github("environmentalinformatics-marburg/satelliteTools", force= TRUE)
+library(satelliteTools)
+library(satellite)
+
+initOTB("C:/OTB-5.8.0-win64/OTB-5.8.0-win64/bin/")
+rasterOptions(tmpdir = path_temp)
+command <- paste0(otbPath, "otbcli_HaralickTextureExtraction.bat")
+system(command)
+```
+####Dateien einlesen
+
+```{}
+stack_pca <- stack(paste0(path_input, "muf_rgb_pca.tif"))
+```
+#### Exact Large-Scale Mean-Shift segmentation
+#####step 1 (MeanShiftSmoothing)
+```{}
+otbcli_MeanShiftSmoothing(paste0(path_input, "muf_rgb_pca.tif"), 
+                          outfile_filter =                  
+                          "C:/Users/Keltoskytoi/Desktop/data/remote_sensing/temp/filter.tif",
+                          outfile_spatial = 
+                          "C:/Users/Keltoskytoi/Desktop/data/remote_sensing/temp/spatial.tif", 
+                          return_raster = TRUE , spatialr = 5, ranger = 15, thres = 0.1,
+                          maxiter = 100, rangeramp = 0, verbose = FALSE, ram = "8192")
+```
+##### step 2 (LargeScaleMeanShiftSegmentation)
+```{}
+pca_filter <- (paste0(path_temp, "filter.tif"))
+pca_spatial <- (paste0(path_temp, "spatial.tif"))
+ranger <- list(15,30)
+
+
+lapply(ranger, function(i){
+ otbcli_ExactLargeScaleMeanShiftSegmentation(x = pca_filter, 
+                                              inpos = pca_spatial, 
+                                              out = paste0(path_temp, "segmentation_", 
+                                              as.character(i),".tif"),
+                                              tmpdir = path_temp, 
+                                              spatialr = 1, ranger = i, minsize = 0, 
+                                              tilesizex = 500, tilesizey = 500, 
+                                              verbose = FALSE, return_raster = TRUE)
+})
+```
+##### step 3 (SmallRegionsMerging)
+```{}
+minsize <- list(40,50,60,70)
+lapply(ranger, function(i){
+  lapply(minsize, function(j){
+    otbcli_LSMSSmallRegionsMerging(x = pca_filter,
+                                   inseg = paste0(path_temp, "segmentation_", as.character(i),".tif"),
+                                   out = paste0(path_temp, "merged_",as.character(i), "_", 
+                                   as.character(j), ".tif"),
+                                   minsize = j, tilesizex = 500, tilesizey = 500,
+                                   verbose = FALSE, return_raster = TRUE, ram = "8192")
+  })
+})
+```
+##### step 4 (LSMSVectorization)
+```{}
+matrix_step4 <- expand.grid(c(15,30), c(40,50,60,70))
+names(matrix_step4) <- c("spectral_range", "minimum_size")
+
+for(i in seq(nrow(matrix_step4))){
+  otbcli_LSMSVectorization(x = "C:/Users/Keltoskytoi/Desktop/data/remote_sensing/input/muf_rgb_pca.tif",
+                           inseg = paste0(path_temp, "merged_", matrix_step4$spectral_range[i], "_",  
+                           matrix_step4$minimum_size[i],".tif"),
+                           out = paste0(path_temp, "vectorization_", matrix_step4$spectral_range[i], "_",                            matrix_step4$minimum_size[i], ".shp"))
+} 
+```
+
+####Discussion
+Es muss sichergestellt werden, dass an den Randpixel eine klare Abgrenzung gibt. Die dargestellten klassen müssen klassengerecht gut abgegrenzt werden (z.B. Haausdächer, Flurgrenzen; Strommastetc.)
+In der gleichen spektralen Größe verändert sich die verschieden spatiale genauigkeit weniger, als in bezug auf der anderen spektralen Größe. Man muss sich entscheiden ob die klassifikation Formgenau oder Detailgenau sein soll. Jede shape hatte ein kleines manko. Je kleiner der spektrale range, desto mehr details sind abgrenzbar. ICh finde das 15/40 sehr detailreich ist und 30/70 recht gut für eine durchschnittsklassifikation ist.
+
