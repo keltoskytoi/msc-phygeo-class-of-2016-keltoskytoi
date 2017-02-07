@@ -1,0 +1,47 @@
+---
+title: "gi-ws-01-1"
+author: "keltoskytoi, richte4d, schoenej"
+date: "7 Februar 2017"
+output: html_document
+---
+
+## GIS Warm-up
+
+1. We worked in QGIS
+
+2. We reprojected the data set into Pseudo Mercator/ EPSG 3857 (Raster/Projections/Transform_Reproject). It was important to transform the projection and not to assing a projection to the LAS-Raster, because data set would have landed in France (as it did, when trying :)
+
+3. As a next step we decided to do a land use classification. For this we identified some test-areas in the region of the data set. We assigned classes form 1 to 3 (1: Meadow, 2: Forest, 3: Settlement) to them.We defined 3 of 4 test-ares each class.
+
+![The first test areas in the region of the data set](C:\Users/Keltoskytoi/Desktop/Wuff/gis/gi-ws-01/gis-ws-01-1/Test_area_1.jpg)
+
+4. We searched for a tool in the extensions to be able to do a classification. We found the 
+"dzetsaka classification tool" and used it for our first cassification. 
+
+![First result with bigger test-areas](C:\Users/Keltoskytoi/Desktop/Wuff/gis/gi-ws-01/gis-ws-01-1/Spielwiese_1.jpg)
+
+We found that the tool did the classification on basis of the 1. and the 2. classes, so everything was either meadow or forest. 
+
+5.We tried to determin smaller test-areas in hope to be able to get a more detailed depiction of the classes in the output image.
+
+![The second test areas in the region of the data set](C:\Users/Keltoskytoi/Desktop/Wuff/gis/gi-ws-01/gis-ws-01-1/Test_area_2.jpg)
+
+We found that the tool did the classification on basis of the 1. and the 3. classes, so everything was either meadow or settlement: 
+
+![Second result with smaller test-areas](C:\Users/Keltoskytoi/Desktop/Wuff/gis/gi-ws-01/gis-ws-01-1/Spielwiese_2.jpg)
+
+6. We realised that there are areas which remain always the same an which were classified as forest. In reality these 
+areas or spots were data losses so we decided to concentrate on the upper left quarter of the data set, where the data was collected separatley and which is not merged or calibrated with the rest of the dataset.  
+
+![The third test areas in the region of the data set](C:\Users/Keltoskytoi/Desktop/Wuff/gis/gi-ws-01/gis-ws-01-1/Test_area_3.jpg)
+
+We found, that the result of the classification on the basis of the smaller region went better: althought the tool seems to have done the classification only on the basis of two classes (namely 1 and 3), three colours appear in the result, black, white and grey:  
+
+![Third result with test-areas concentrated in the NW-corner](C:\Users/Keltoskytoi/Desktop/Wuff/gis/gi-ws-01/gis-ws-01-1/Spielwiese_3.jpg)
+
+Putting all three areas next to each other we can see a certain deeper classification. 
+
+![THe three results next to each other](C:\Users/Keltoskytoi/Desktop/Wuff/gis/gi-ws-01/gis-ws-01-1/Spielwiesen_1_2_3.jpg)
+
+Viewing all of the classifications together the last classification seems to give a better answer for our question than the first two, but still something is missing. The input image was the reprojected LAS Intensity raster. So it is based on an intesity image and thus the classification can only give us back the relation of those pointscontexts calculated by the intensity image and not the real point contexts. So where the area with should have been classified as meadow was darker it was identified as forest because it had the same shade of grey as the forest area. 
+
