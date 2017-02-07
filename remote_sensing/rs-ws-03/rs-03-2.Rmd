@@ -1,0 +1,41 @@
+---
+title: "rs-ws-03-2"
+author: "keltoskytoi, richte4d, schoenej"
+date: "7 Februar 2017"
+output: html_document
+---
+##Our Strategy
+
+Load the two aerial images which shall be compared.
+Extract those cell values of the line of cell in one raster which is closest to the other raster to a data frame
+Compare the two data frames, i.e. by substracting them from each other.
+The result is an indication for how much the radiometric alignment differs between the two aerial images.
+
+``````{r, eval=FALSE}
+#set path 
+source("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/fun/Source_rs.R")
+
+#set library
+library(raster)
+
+#stack files
+S1<-stack(paste0(path_aerial,"476000_5630000.tif"))
+S2<-stack(paste0(path_aerial,"476000_5632000.tif"))
+
+##  Step 1:  Raster in data.frame
+S1.data.frame=as.data.frame(S1, optional = FALSE)
+S2.data.frame=as.data.frame(S2, optional = FALSE)
+
+## Step 2:  s1: Reihe 10000 und Spalten 1-10000 s2: Reihe 1 und Spalten 1-10000
+row.values.1=S1.data.frame[c(99990001:100000000),]
+row.values.2=S2.data.frame[c(1:10000), ]
+
+## zur Visualisierung:
+nrow(S1.data.frame)
+ncol(S1.data.frame)
+head(S1.data.frame)
+nrow(S2.data.frame)
+ncol(S2.data.frame)
+head(S2.data.frame)
+```
+#### Step 3:  Werte der beiden variablen row.values.1 und row.values.2 vergleichen

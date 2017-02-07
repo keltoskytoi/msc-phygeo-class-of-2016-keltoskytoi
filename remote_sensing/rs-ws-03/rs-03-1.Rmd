@@ -1,0 +1,49 @@
+---
+title: "rs-ws-03"
+author: "keltoskytoi, richte4d, schoenej"
+date: "7 Februar 2017"
+output: html_document
+---
+
+```{r, eval=FALSE}
+
+#Pfade setzten
+source("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/fun/Source_rs.R")
+
+#Library laden
+library (raster)
+
+#Raster einlesen
+R1<-raster(paste0(path_aerial, "478000_5630000.tif"))
+R2<-raster(paste0(path_aerial, "478000_5632000.tif"))
+R3<-raster(paste0(path_aerial, "las_intensity_05.tif"))
+
+#Raster 1 beschneiden
+crop1<-crop(R1, extent (474000, 479000, 5630000, 5634000))
+plot(crop1)
+
+#Raster 2 beschneiden
+crop2<-crop(R2, extent (474000, 479000, 5630000, 5634000))            
+plot(crop2)
+
+#Raster ausschreiben 
+writeRaster(crop1, file = paste0(path_aerial_croped, "crop1.tif"), "GTiff", overwrite = TRUE)
+writeRaster(crop2, file = paste0(path_aerial_croped, "crop2.tif"), "GTiff", overwrite = TRUE)
+
+#Die weißen Streifen herausrechnen
+s1<-stack(paste0(path_aerial,"476000_5630000.tif"))
+s2<-stack(paste0(path_aerial,"476000_5632000_1.tif"))
+s3<-stack(paste0(path_aerial,"476000_5630000_1.tif"))
+s4<-stack(paste0(path_aerial,"476000_5632000.tif"))
+
+##Raster 1
+Raster1 <- s1+s3-255
+
+writeRaster(Raster1, file = paste0(path_aerial_croped, "476000_5630000_stacked.tif"), "GTiff", overwrite = TRUE)
+
+##Raster 2
+Raster2 <- s2+s4-255
+
+writeRaster(Raster2, file = paste0(path_aerial_croped, "476000_5632000_stacked.tif"), "GTiff", overwrite = TRUE)
+
+```
