@@ -1,0 +1,58 @@
+---
+title: "rs-ws-05-2_06-1"
+author: "keltoskytoi, richte4d, schoenej"
+date: "8 Februar 2017"
+output: html_document
+---
+
+```{r, eval=FALSE}
+
+#Pfade setzten
+source("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/fun/fun_shps_cmb.R")
+source("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/fun/Source_rs.R")
+
+#Librarys laden
+library(raster)
+library (rgeos)
+library(rgdal) 
+library(sp)
+library(tools)
+
+#Load all shapenames in a list
+shp_names <- list.files("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/input/Classification/shapes_all", 
+                        pattern = glob2rx ("*shp"), full.names=TRUE)
+
+#Write them all into one file
+outfile = paste0(path_output ,"trainingareas_all_merged.shp") 
+                 shapes = shps_cmb(shp_names=shp_names, outfile=outfile)
+  
+shapes <- shps_cmb(shp_names = shp_names, outfile = outfile)
+
+ogrInfo(dsn= paste0(path_output, "."), layer= "trainingareas_all_merged")
+
+outfile.shape = readOGR(dsn= paste0(path_output, "."), layer= "trainingareas_all_merged") 
+plot(outfile.shape, axes=TRUE, col="green", border="blue")
+
+writeOGR(outfile.shape, "C:/Users/Keltoskytoi/Desktop/data/remote_sensing/output/TAM.shp", "TAM", 
+         driver = "ESRI Shapefile", overwrite_layer = TRUE)
+
+
+              # Is it possible to cut a shape-file to the extent of a raster file?
+
+#Load the merged aerial Photo
+aerial.extent = raster(paste0(path_aerial_final, "muf_merged_001m.tif")) 
+plot(aerial.extent)
+
+#Load the new shape with all trianing areas 
+allshapes <- readOGR("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/output", "TAM")
+
+#crop to extent of the aerial photo
+CRD <- crop(allshapes, extent (474000, 479000, 5630000, 5634000))
+## it says: Error in RGEOSBinTopoFunc(spgeom1, spgeom2, byid, id, drop_lower_td, unaryUnion_if_byid_false,  : 
+## TopologyException: Input geom 0 is invalid: Self-intersection at or near point 
+476310.99412294826 5632798.1128416797 at 476310.99412294826 5632798.1128416797
+
+writeOGR(shape_cropped, "C:/Users/Keltoskytoi/Desktop/data/remote_sensing/output/TAM.shp", "TAM", 
+         driver = "ESRI Shapefile", overwrite_layer = TRUE)
+```
+
