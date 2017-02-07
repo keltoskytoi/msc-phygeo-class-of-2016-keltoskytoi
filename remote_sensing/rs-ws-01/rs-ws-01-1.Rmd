@@ -18,18 +18,10 @@ output: html_document
 
 *I used LAS to Dataset, All Point classes, First return, Intensity, Binning Average + Simple, INT, Cellsize, 1* 
 
-![Lidar based intensity range within each raster cell](C:\Users/Keltoskytoi/Desktop/WS2016_2017/Remote sensing/rs-ws-01-1/Intensity Mean within each Raster cell_LAS to raster_all point classes_first return_Intensity_average_simple.jpg)
+![Lidar based intensity range within each raster cell](C:\Users/Keltoskytoi/Desktop/Wuff/remote_sensing/rs-ws-01/Intensity Mean within each Raster cell_LAS to raster_all point classes_first return_Intensity_average_simple.jpg)
 
 ###LiDAR based height range within each raster cell
 
 *I used LAS Punkt Statistics as Raster, All Point classes, All returns, Z-range, 1*
 
-![Lidar based height range within each raster cell](C:\Users/Keltoskytoi/Desktop/WS2016_2017/Remote sensing/rs-ws-01-1/Height range within each raster cell_LAS Statistics_all classes_all returns_Z range.jpg)
-
-
-
-
-```
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+![Lidar based height range within each raster cell](C:\Users/Keltoskytoi/Desktop/Wuff/remote_sensing/rs-ws-01/Height range within each raster cell_LAS Statistics_all classes_all returns_Z range.jpg)

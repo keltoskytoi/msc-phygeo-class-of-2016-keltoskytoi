@@ -1,0 +1,33 @@
+---
+title: "rs-ws-02-2"
+author: "keltoskytoi, Jana Schönemann, Sebastian Richter, Christian Lengemann"
+date: "3 November 2016"
+output: html_document
+---
+
+```{r}
+#Pfade setzten
+source("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/fun/Source_rs.R")
+
+#Library laden
+library (raster)
+
+#Raster einlesen
+R1<-raster(paste0(path_aerial, "478000_5630000.tif"))
+R2<-raster(paste0(path_aerial, "478000_5632000.tif"))
+R3<-raster(paste0(path_aerial, "las_intensity_05.tif"))
+
+#Raster 1 beschneiden
+crop1<-crop(R1, extent (474000, 479000, 5630000, 5634000))
+plot(crop1)
+
+#Raster 2 beschneiden
+crop2<-crop(R2, extent (474000, 479000, 5630000, 5634000))            
+plot(crop2)
+
+#Raster ausschreiben 
+writeRaster(crop1, file = paste0(path_aerial_croped, "crop1.tif"), "GTiff", overwrite = TRUE)
+writeRaster(crop2, file = paste0(path_aerial_croped, "crop2.tif"), "GTiff", overwrite = TRUE)
+```
+
+### Question: why are the gtiffs when displayed in qgis greyscale?
