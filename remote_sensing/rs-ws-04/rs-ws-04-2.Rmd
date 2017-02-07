@@ -1,42 +1,49 @@
 ---
 title: "rs-ws-04-2"
-author: "keltoskytoi, Jana Schönemann, Sebastian Richter"
-date: "Thursday, November 17, 2016"
+author: "keltoskytoi, richte4d, schoenej"
+date: "7 Februar 2017"
 output: html_document
 ---
 
-# Spatial Filtering
+```{r, eval=FALSE}
 
-```
+###Set path
+source("C:/Users/Keltoskytoi/Desktop/data/remote_sensing/fun/Source_rs.R")
+
+#Librarys laden
 library(raster)
 library(glcm)
 library(rgdal)
 library(spatial)
 
-path_main<-("C:/Users/Keltoskytoi/Desktop/WS2016_2017/msc-phygeo-class-of-2016-keltoskytoi/remote_sensing/")
-path_scripte<-("C:/Users/Keltoskytoi/Desktop/msc-phygeo-class-of-2016-keltoskytoi/remote_sensing/rs-ws-04")
-path_results<-("C:/Users/Keltoskytoi/Desktop/msc-phygeo-class-of-2016-keltoskytoi/remote_sensing/rs-ws-04/")
+                                ###Spatial Filtering
 
-load(paste0(path_scripte, "intensity_index.R"))
+### Set path to the intensity index
+source(paste0(path_fun, "intensity_index.R"))
 
-raster1 <-raster(paste0(path_main, "474000_5630000.tif"))
+raster1 <-raster(paste0(path_aerial, "474000_5630000.tif"))
 
 Result_1 <- glcm(raster1, n_grey = 137, window = c(13, 13), shift = c(1, 1), statistics = 
-         c("mean"), min_x=NULL, max_x=NULL, na_opt="any", na_val=NA)  
+               c("mean"), min_x=NULL, max_x=NULL, na_opt="any", na_val=NA)  
 
-writeRaster("C:/Users/Keltoskytoi/Desktop/msc-phygeo-class-of-2016-keltoskytoi/remote_sensing/rs-ws-04/KleinesFenster_Mean",format= "GTiff", overwrite = TRUE)
+writeRaster(Result_1, file = paste0(path_input, "KleinesFenster_Mean.tif"), "GTiff", overwrite = FALSE)
+
 
 Result_2 <- glcm(raster1, n_grey = 137, window = c(103, 103), shift = c(1, 1), statistics = 
-                   c("mean"), min_x=NULL, max_x=NULL, na_opt="any", na_val=NA)
+               c("mean"), min_x=NULL, max_x=NULL, na_opt="any", na_val=NA)
 
-writeRaster("C:/Users/Keltoskytoi/Desktop/msc-phygeo-class-of-2016-keltoskytoi/remote_sensing/rs-ws-04/MittleresFenster_Mean",format= "GTiff", overwrite = TRUE)
+writeRaster(Result_2, file = paste0(path_input, "MittleresFenster_Mean.tif"), "GTiff", overwrite = FALSE)
 
 Result_3 <- glcm(raster1, n_grey = 137, window = c(203, 203), shift = c(1, 1), statistics = 
-                   c("mean"), min_x=NULL, max_x=NULL, na_opt="any", na_val=NA)
+               c("mean"), min_x=NULL, max_x=NULL, na_opt="any", na_val=NA)
 
-writeRaster("C:/Users/Keltoskytoi/Desktop/msc-phygeo-class-of-2016-keltoskytoi/remote_sensing/rs-ws-04/GroßesFenster_Mean",format= "GTiff", overwrite = TRUE)
+writeRaster(Result_3, file = paste0(path_input, "GroßesFenster_Mean.tif"), "GTiff", overwrite = FALSE)
 
+* We tried to calculade the output images, but it took too long to proceed. 
+We probably should have cropped it before filtering but due to the late hour 
+(after waiting 2 hours for certain calculations)we broke down. 
+* Theoretically the "mean filter" works on the basis of the mean. 
+A reference pixel is chosen and the mean is calculated on the gound
+of the neighbouring pixels 
 ```
-* We tried to calculade the output images, but it took too long to proceed. We probably should have cropped it before filtering but due to the late hour (after waiting 2 hours for certain calculations) we broke down. 
 
-* Theoretically the "mean filter" works on the basis of the mean. A reference pixel is chosen and the mean is calculated on the gound of the neighbouring pixels 
