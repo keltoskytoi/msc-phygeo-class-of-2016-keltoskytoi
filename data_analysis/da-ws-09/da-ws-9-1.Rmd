@@ -1,0 +1,32 @@
+---
+title: "da-ws-09-1"
+author: "keltoskytoi, richte4d, schoenej"
+date: "8 Februar 2017"
+output: html_document
+---
+```{r eval=FALSE}
+# Load packages
+library(caret)
+library(lattice)
+library(ggplot2)
+
+#read table
+holz <- read.table ("C:/Users/Keltoskytoi/Desktop/data/data_analysis/csv/hessen_holzeinschlag_1997-2014.csv",
+                    skip = 4, header = TRUE, sep = ";", dec = ",")
+
+holz <- holz [-19,]
+
+head(holz)
+
+
+s <- sample (nrow(holz), nrow(holz)*0.8)
+train <- holz[s,]
+test <- holz[-s,]
+
+smpl <- createDataPartition(holz, p=0.80, list=FALSE, times = 5)
+samples <- lapply(seq(ncol(smpl)), function(s){
+  list(train=holz[smpl[,s],], test = holz[-smpl[,s],]) 
+})
+
+samples
+```

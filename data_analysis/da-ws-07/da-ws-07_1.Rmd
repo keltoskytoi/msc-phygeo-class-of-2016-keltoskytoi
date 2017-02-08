@@ -1,0 +1,39 @@
+---
+title: "da-ws-07-1"
+author: "keltoskytoi, richte4d, schoenej"
+date: "8 Februar 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+# Pfade setzen und Funktion einlesen--------------------------------------------
+
+source("C:/Users/Keltoskytoi/Desktop/data/data_analysis/fun/Source_da.R")
+source("C:/Users/Keltoskytoi/Desktop/data/data_analysis/fun/fun_fwd_fs.R")
+
+# libraries laden---------------------------------------------------------------
+
+library(car)
+
+# Dateien einlesen-------------------------------------------------------------
+
+data <- read.table ("C:/Users/Keltoskytoi/Desktop/data/data_analysis/csv/115-46-4_feldfruechte.txt",
+                    header = TRUE, sep = ",", dec = ".")
+
+
+dep <- "Winterweizen"
+vars <- names(data)[-c(1:5,7)]
+selected_vars <- c()
+calc <- TRUE
+
+while (calc == TRUE){
+  first_vars <- forward_feature_selection(data, dep, vars=vars, selected_vars=selected_vars)
+  vars <- vars[-which(vars == first_vars[[1]])]
+  selected_vars <- rbind(selected_vars, first_vars[[1]])
+  
+  if (first_vars[[2]] < max(first_vars[[3]]$Adj_R_sqrd)){
+    calc <- FALSE
+    print(first_vars)
+  }
+}
+```
