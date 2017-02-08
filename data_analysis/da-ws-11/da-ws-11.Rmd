@@ -1,0 +1,109 @@
+---
+title: "da-ws-11"
+author: "keltoskytoi, richte4d, schoenej, LauraS86, LFunken, Pseudogley2"
+date: "8 Februar 2017"
+output: html_document
+---
+```{r eval=FALSE}
+
+# Pfade setzen-----------------------------------------------------------------
+source("C:/Users/Keltoskytoi/Desktop/data/data_analysis/fun/Source_da.R")
+
+# libraries und function einlesen----------------------------------------------
+library(zoo)
+library(car)
+install.packages("timeDate")
+install.packages("forecast")
+
+# Dateien einlesen und vorbereiten----------------------------------------------
+dwd <- read.table(paste0(path_csv, "produkt_monat_Monatswerte_19460101_20141231_03164.txt"),
+                  header=TRUE, sep = ";")
+
+#DWD - Datensatz bereinigen (Januar 1940-Dezember 1990)
+dwd$MONAT <- strptime(paste0(dwd$MESS_DATUM_BEGINN, "00"), format = "%Y%m%d")
+
+tam <- data.frame(dwd$MONAT,dwd$LUFTTEMPERATUR)
+colnames(tam) <- c("Date", "Ta")
+
+tam <- tam[49:540,]
+head(tam)
+
+plot(tam$Date, tam$Ta, type = "l")
+
+
+# ReadNAO Index
+nao <- read.table(paste0(path_csv, "nao_norm_1950-2000.txt.txt"), header = TRUE, sep = ";")
+
+nao$INDEX <- substr(nao$YEAR.MONTH.INDEX, 12, 23)
+
+nao <- nao[1:492,]
+
+nao <- data.frame(tam$Date,nao$INDEX)
+colnames(nao) <- c("Date", "Index")
+head(nao)
+
+
+## Trend estimation 
+monthly_mean <- aggregate(tam$Ta, by = list(substr(tam$Date, 6, 7)), FUN = mean)
+tam$Ta_ds <- tam$Ta - monthly_mean$x
+
+ts <-seq(1950, 1990+11/12, length = nrow(tam))
+lmod <- lm(tam$Ta_ds ~ ts)
+summary(lmod)
+
+plot(ts, tam$Ta_ds, type = "l")
+abline(lmod, col = "red")
+
+##Dynamics in seasonal temperature explained by fluctuations of the NAO
+# divide the NAO index into "positive" and "negative"
+
+nao$factor <- lapply(seq(nrow(nao)), function(i){
+  if (substr(nao$Index[i], 1, 1) == "-") {
+    return("N")
+  } else {
+    return("P")
+  }
+})
+head(nao)
+
+# create multiple linear model
+ts <- seq(1950, 1990+11/12, length = nrow(nao))
+
+sin <- sin(2*pi*ts)
+cos <- cos(2*pi*ts)
+
+factor <- nao$factor
+factor <- do.call("rbind", factor)
+
+y <- tam$Ta
+
+lmod_nao <- lm(y ~ sin + cos + factor)
+print(lmod_nao)
+
+# predict the temperature dynamics
+pred <- predict(lmod_nao)
+pred <- data.frame(ts,pred)
+plot(pred)
+lines(pred, col = "red")
+
+# cross-check the significance of the NAO factor
+nao2000 <- lapply(seq(2000), function(i){
+  set.seed(i)
+  factor_smpl <- sample(c("P","N"), nrow(factor), replace=TRUE)
+  lmod_check <- lm(y ~ sin + cos + factor_smpl)
+  lmod_check$coefficients[4]
+})
+nao2000 <- do.call("rbind", nao2000)
+summary(nao2000)
+
+quan.025 <- quantile(nao2000, probs=0.025)
+quan.975 <- quantile(nao2000, probs=0.975)
+
+if (lmod_nao$coefficients[4] < quan.025) {
+  print("Our NAO factor is smaller than 97.5% of the NAO factors of the 2000 computed models. This might be an indicator for an actual influence on the air temperature dynamics.")
+} else if (lmod_nao$coefficients[4] > quan.975) {
+  print("Our NAO factor is larger than 97.5% of the NAO factors of the 2000 computed models. This might be an indicator for an actual influence on the air temperature dynamics.")
+} else if (lmod_nao$coefficients[4] < quan.975 & lmod_nao$coefficients[4] > quan.025) {
+  print("Our NAO factor is between the smallest 2.5% and the largest 2.5% of the NAO factors of the 2000 computed models. The NAO factor has no influence on the air temperature dynamics.")
+}
+```

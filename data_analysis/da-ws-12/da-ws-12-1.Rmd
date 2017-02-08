@@ -1,0 +1,103 @@
+---
+title: "da-ws-12-1"
+author: "keltoskytoi, richte4d, schoenej, LauraS86, LFunken, Pseudogley2"
+date: "8 Februar 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+####Pfade einlesen
+source("C:/Users/Keltoskytoi/Desktop/data/data_analysis/fun/Source_da.R")
+#### libraries und function einlesen-------------------------------------------
+libs <- c('ggplot2', 'lattice', 'latticeExtra', 'grid', 'gridExtra')
+lapply(libs, require, character.only = TRUE)
+
+
+#### Dateien einlesen----------------------------------------------------------
+lu <- readRDS(file = "C:/Users/Keltoskytoi/Desktop/data/data_analysis/csv/AI001_gebiet_flaeche.RDS")
+
+colnames(lu) <- c("Year", "ID", "Place", "Admin_unit", "Admin_misc", 
+                  "Settlement", "Recreation", "Agriculture", "Forest")
+
+lul <- reshape2::melt(lu, id.vars = c("Year", "ID", "Place", "Admin_unit", 
+                                      "Admin_misc"))
+
+
+### Boxplots ------------------------------------------------------------------
+plot_box <- bwplot(value ~ variable, data = lul, ylab="",
+                   scales = list(tck=c(1,0), x=list(tck=c(1,0))))
+
+orig <- bwplot(value ~ variable, data = lul, main = "Original", ylab="",
+               scales = list(tck=c(1,0), x=list(tck=c(1,0))))
+sqrt <- bwplot(value**0.5 ~ variable, data = lul, main = "Square root", ylab="",
+               scales = list(tck=c(1,0), x=list(tck=c(1,0))))
+cbrt <- bwplot(value**(1/3) ~ variable, data = lul, main = "Cube root", ylab="",
+               scales = list(tck=c(1,0), x=list(tck=c(1,0))))
+log <- bwplot(log(value) ~ variable, data = lul, main = "Log", ylab="",
+              scales = list(tck=c(1,0), x=list(tck=c(1,0))))
+
+
+bw_theme <- trellis.par.get()
+bw_theme$box.dot$pch <- "|"
+#Die Mittellinie des box.dot kann nicht angepasst werden.
+bw_theme$box.rectangle$col <- "black"
+#bw_theme$box.umbrella$lty ändert Linienart des Schirms. Gibt keine Kombination 
+#aus durchgezogener und gestrichelter Linie
+bw_theme$box.umbrella$lty <- 1  
+bw_theme$box.umbrella$col <- "black"
+bw_theme$plot.symbol$col <- "black"
+
+
+plot_box <- update(plot_box, par.settings = bw_theme)
+plot(plot_box)
+
+orig <- update(orig, par.settings = bw_theme)
+sqrt <- update(sqrt, par.settings = bw_theme)
+cbrt <- update(cbrt, par.settings = bw_theme)
+log <- update(log, par.settings = bw_theme)
+grid.arrange(orig,sqrt,cbrt,log, ncol=2)
+
+
+###Histograms------------------------------------------------------------------
+plot_hist <- histogram(lu$Settlement, 
+                       main="Histogram of lu$Settlement", 
+                       breaks=16, type = "count", col="white", ylab = "Frequency", 
+                       scales = list(tck=c(1,0), x=list(tck=c(1,0))))
+
+plot(plot_hist)
+
+
+
+###QQPlot----------------------------------------------------------------------
+h <- as.numeric(quantile(lu$Agriculture, probs=c(0.25, 0.75), na.rm=TRUE))
+v <- as.numeric(qnorm(c(0.25, 0.75)))
+
+qqmath(lu$Agriculture, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+       main = "Normal Q-Q Plot", col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+       abline=list(h=c(h[1], h[2]), v=c(v[1], v[2]), lty=3, lwd=1, col.line="blue"),
+       scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+
+qq1 <- qqmath((lu$Agriculture**1-1)/1, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+       main = paste0("Normal Q-Q Plot, y**p-1/p for ", 1), col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+       scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+qq2 <- qqmath((lu$Agriculture**0.5-1)/0.5, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+       main = paste0("Normal Q-Q Plot, y**p-1/p for ", 0.5), col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+       scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+qq3 <- qqmath((lu$Agriculture**0.25-1)/0.25, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+       main = paste0("Normal Q-Q Plot, y**p-1/p for ", 0.25), col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+       scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+qq4 <- qqmath(log(lu$Agriculture), ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+       main = "Normal Q-Q Plot, log(y)", col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+       scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+grid.arrange(qq1, qq2, qq3, qq4, ncol=2)
+
+
+###Scatterplot ----------------------------------------------------------------
+xyplot(lu$Recreation ~ lu$Settlement, data = lul, col="black",
+       scales = list(tck=c(1,0), x=list(tck=c(1,0))))
+```
